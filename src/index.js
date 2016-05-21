@@ -9,9 +9,12 @@
 
 // downwards dataflow: the most parent component should be responsible for fetching data
 
+// throttling with lodash module; debounce
+
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import YTSearch from 'youtube-api-search';
+import _ from 'lodash';
 
 import SearchBar from './components/search_bar';
 import VideoList from './components/video_list';
@@ -30,8 +33,13 @@ class App extends Component {
       selectedVideo: null
     };
 
+    // initial search on starting of the app
+    this.videoSearch('john oliver');
+  }
+
+  videoSearch(term) {
     // the search is not an instanteous operation but a network request
-    YTSearch({key: API_KEY, term: 'john oliver'}, (videos) => {
+    YTSearch({key: API_KEY, term: term}, (videos) => {
       // this.setState({ videos })
       this.setState({ 
         videos: videos,
@@ -40,12 +48,14 @@ class App extends Component {
     })
   }
 
-
-
   render() {
+  // throttle user search with lodash's debounce
+  // debounce will execute the function after 300ms has elapsed 
+  const videoSearch = _.debounce((term) => { this.videoSearch(term) }, 300);
+  
     return (
       <div>
-        <SearchBar />
+        <SearchBar onSearchTermChange={videoSearch} />
         <VideoDetail video={this.state.selectedVideo} />
         <VideoList  
           videos={this.state.videos}
